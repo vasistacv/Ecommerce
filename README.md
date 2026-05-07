@@ -264,7 +264,22 @@ This will download and install Django, Groq AI, and all other dependencies. Wait
 
 You should see `Successfully installed ...` at the end.
 
-### Step 8: Set Up the Database
+### Step 8: Set Up Environment Variables (Groq API Key)
+
+> **⚠️ Note:** The `.env` file in the repository is committed with a placeholder key. Anyone cloning the repo needs to add their own Groq API key. Your real key is safe locally and `.env` is in `.gitignore` for future commits.
+
+To use the AI features (Chatbot, Recommendations, Fraud Detection, etc.), you need a free Groq API key:
+
+1. Go to the [Groq Console](https://console.groq.com/keys)
+2. Create a free account or log in
+3. Click on **"Create API Key"** and copy the generated key
+4. Open the `.env` file in the project folder
+5. Replace the placeholder value with your actual key:
+   ```env
+   GROQ_API_KEY=gsk_your_actual_api_key_here
+   ```
+
+### Step 9: Set Up the Database
 
 ```bash
 # Create database tables
@@ -273,7 +288,7 @@ python manage.py makemigrations accounts products cart orders payments ai_engine
 python manage.py migrate
 ```
 
-### Step 9: Load Sample Data (Products, Users, Categories)
+### Step 10: Load Sample Data (Products, Users, Categories)
 
 ```bash
 python manage.py seed_data
@@ -296,7 +311,7 @@ Database seeded successfully!
    Test User:   user1 / password123
 ```
 
-### Step 10: Start the Server! 🎉
+### Step 11: Start the Server! 🎉
 
 ```bash
 python manage.py runserver
@@ -307,7 +322,7 @@ You should see:
 Starting development server at http://127.0.0.1:8000/
 ```
 
-### Step 11: Open in Your Browser
+### Step 12: Open in Your Browser
 
 Open your web browser and go to:
 
