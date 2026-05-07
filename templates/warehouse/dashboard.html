@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Warehouse Dashboard{% endblock %}
+{% block content %}
+<div class="container section">
+    <h1 class="section-title">🏭 Warehouse Dashboard</h1>
+    <!-- Stats -->
+    <div class="grid grid-4 mb-3">
+        <div class="glass-card stat-card"><div class="stat-icon orange">📦</div><div class="stat-value">{{ total_inventory }}</div><div class="stat-label">Total Inventory</div></div>
+        <div class="glass-card stat-card"><div class="stat-icon purple">🔒</div><div class="stat-value">{{ total_reserved }}</div><div class="stat-label">Reserved Units</div></div>
+        <div class="glass-card stat-card"><div class="stat-icon red">⚠️</div><div class="stat-value">{{ low_stock_items|length }}</div><div class="stat-label">Low Stock Alerts</div></div>
+        <div class="glass-card stat-card"><div class="stat-icon green">🏭</div><div class="stat-value">{{ warehouses|length }}</div><div class="stat-label">Active Warehouses</div></div>
+    </div>
+
+    <!-- Warehouses -->
+    <div class="glass-card mb-3">
+        <h3 style="margin-bottom:1rem">🏭 Warehouses</h3>
+        <div class="grid grid-3">
+            {% for wh in warehouses %}
+            <div style="padding:1rem;border:1px solid var(--border);border-radius:var(--radius-sm)">
+                <h4>{{ wh.name }}</h4>
+                <p class="text-muted" style="font-size:0.85rem">{{ wh.city }}, {{ wh.state }}</p>
+                <div class="progress-bar" style="margin:0.5rem 0"><div class="progress-fill" style="width:{{ wh.occupancy_percent }}%;background:{% if wh.occupancy_percent > 90 %}#EF4444{% elif wh.occupancy_percent > 70 %}#F59E0B{% else %}var(--gradient){% endif %}"></div></div>
+                <div class="flex-between" style="font-size:0.85rem"><span>{{ wh.occupancy_percent }}% Full</span><span>{{ wh.current_occupancy }}/{{ wh.capacity }}</span></div>
+            </div>
+            {% empty %}<p class="text-muted">No warehouses configured</p>{% endfor %}
+        </div>
+    </div>
+
+    <div class="grid grid-2 mb-3">
+        <!-- Low Stock -->
+        <div class="glass-card">
+            <h3 style="margin-bottom:1rem">⚠️ Low Stock Alerts</h3>
+            <table class="data-table"><thead><tr><th>Product</th><th>Warehouse</th><th>Stock</th><th>Status</th></tr></thead><tbody>
+            {% for inv in low_stock_items %}
+            <tr><td>{{ inv.product.name|truncatewords:4 }}</td><td>{{ inv.warehouse.name }}</td><td>{{ inv.available }}</td><td><span class="badge {% if inv.available <= 0 %}badge-danger{% else %}badge-warning{% endif %}">{% if inv.available <= 0 %}Empty{% else %}Low{% endif %}</span></td></tr>
+            {% empty %}<tr><td colspan="4" class="text-center text-muted">All stocked up! 🎉</td></tr>{% endfor %}
+            </tbody></table>
+        </div>
+
+        <!-- Critical Stock -->
+        <div class="glass-card">
+            <h3 style="margin-bottom:1rem">🚨 Critical Product Stock</h3>
+            <table class="data-table"><thead><tr><th>Product</th><th>Stock</th><th>Alert Level</th></tr></thead><tbody>
+            {% for p in critical_stock %}
+            <tr><td>{{ p.name|truncatewords:4 }}</td><td><strong style="color:{% if p.stock == 0 %}#EF4444{% else %}#F59E0B{% endif %}">{{ p.stock }}</strong></td><td>{{ p.min_stock_alert }}</td></tr>
+            {% empty %}<tr><td colspan="3" class="text-center text-muted">No critical stock issues</td></tr>{% endfor %}
+            </tbody></table>
+        </div>
+    </div>
+
+    <div class="grid grid-2">
+        <!-- Pending Shipments -->
+        <div class="glass-card">
+            <h3 style="margin-bottom:1rem">📦 Pending Shipments</h3>
+            {% for ship in pending_shipments %}
+            <div class="flex-between" style="padding:0.5rem 0;border-bottom:1px solid var(--border)">
+                <div><strong>{{ ship.order.order_number }}</strong><br><span class="text-muted" style="font-size:0.82rem">{{ ship.warehouse.name }}</span></div>
+                <span class="badge badge-warning">{{ ship.get_status_display }}</span>
+            </div>
+            {% empty %}<p class="text-muted">No pending shipments</p>{% endfor %}
+        </div>
+
+        <!-- Awaiting Fulfillment -->
+        <div class="glass-card">
+            <h3 style="margin-bottom:1rem">⏳ Awaiting Fulfillment</h3>
+            {% for o in awaiting_fulfillment %}
+            <div class="flex-between" style="padding:0.5rem 0;border-bottom:1px solid var(--border)">
+                <div><strong>{{ o.order_number }}</strong><br><span class="text-muted" style="font-size:0.82rem">{{ o.user.first_name }} · ₹{{ o.total|floatformat:0 }}</span></div>
+                <span class="badge badge-info">{{ o.get_status_display }}</span>
+            </div>
+            {% empty %}<p class="text-muted">All orders fulfilled 🎉</p>{% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

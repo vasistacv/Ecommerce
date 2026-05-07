@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Payment{% endblock %}
+{% block content %}
+<div class="container section" style="max-width:800px">
+    <h1 class="section-title">💳 Payment</h1>
+    <div class="checkout-layout" style="grid-template-columns:1.3fr 1fr">
+        <div class="glass-card">
+            <h3 style="margin-bottom:1.5rem">Payment Method</h3>
+            <form method="post" id="payment-form">{% csrf_token %}
+                <div class="form-group">
+                    <div style="display:flex;gap:0.8rem;flex-wrap:wrap;margin-bottom:1rem">
+                        {% for val, label in "card,Credit/Debit Card|upi,UPI|netbanking,Net Banking|wallet,Digital Wallet|cod,Cash on Delivery" %}{% endfor %}
+                        <label style="display:flex;align-items:center;gap:0.5rem;padding:0.6rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer"><input type="radio" name="payment_method" value="card" checked style="accent-color:var(--primary)"> 💳 Card</label>
+                        <label style="display:flex;align-items:center;gap:0.5rem;padding:0.6rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer"><input type="radio" name="payment_method" value="upi" style="accent-color:var(--primary)"> 📱 UPI</label>
+                        <label style="display:flex;align-items:center;gap:0.5rem;padding:0.6rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer"><input type="radio" name="payment_method" value="netbanking" style="accent-color:var(--primary)"> 🏦 Net Banking</label>
+                        <label style="display:flex;align-items:center;gap:0.5rem;padding:0.6rem 1rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer"><input type="radio" name="payment_method" value="cod" style="accent-color:var(--primary)"> 💵 COD</label>
+                    </div>
+                </div>
+                <div id="card-fields">
+                    <div class="form-group"><label class="form-label">Card Number</label><input type="text" name="card_number" class="form-input" placeholder="4242 4242 4242 4242" maxlength="19" value="4242424242424242"></div>
+                    <div class="grid grid-2">
+                        <div class="form-group"><label class="form-label">Expiry</label><input type="text" name="card_expiry" class="form-input" placeholder="MM/YY" value="12/28"></div>
+                        <div class="form-group"><label class="form-label">CVV</label><input type="text" name="card_cvv" class="form-input" placeholder="123" maxlength="4" value="123"></div>
+                    </div>
+                    <div class="form-group"><label class="form-label">Cardholder Name</label><input type="text" name="card_name" class="form-input" placeholder="Name on card" value="{{ user.first_name }} {{ user.last_name }}"></div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block btn-lg mt-2">🔒 Pay ₹{{ order.total|floatformat:2 }}</button>
+                <p style="text-align:center;margin-top:0.8rem;font-size:0.82rem;color:var(--text-muted)">🔒 Your payment is secure and encrypted</p>
+            </form>
+        </div>
+
+        <div class="order-summary">
+            <div class="glass-card">
+                <h3 style="margin-bottom:1rem">📋 Order {{ order.order_number }}</h3>
+                {% for item in order.items.all %}
+                <div class="flex-between" style="padding:0.4rem 0;font-size:0.9rem"><span>{{ item.product_name }} × {{ item.quantity }}</span><span>₹{{ item.total_price|floatformat:2 }}</span></div>
+                {% endfor %}
+                <hr style="margin:0.5rem 0;border:none;border-top:1px solid var(--border)">
+                <div class="summary-row"><span>Subtotal</span><span>₹{{ order.subtotal|floatformat:2 }}</span></div>
+                <div class="summary-row"><span>Tax</span><span>₹{{ order.tax|floatformat:2 }}</span></div>
+                <div class="summary-row"><span>Shipping</span><span>₹{{ order.shipping_cost|floatformat:2 }}</span></div>
+                <div class="summary-row total"><span>Total</span><span style="color:var(--primary)">₹{{ order.total|floatformat:2 }}</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

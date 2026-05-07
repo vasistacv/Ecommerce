@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<section class="hero">
+    <h1>Shop Smarter with <span>AI-Powered</span> Recommendations</h1>
+    <p>Discover products tailored just for you. Powered by advanced AI for the best shopping experience.</p>
+    <a href="{% url 'product_list' %}" class="btn btn-primary btn-lg">🛒 Start Shopping</a>
+</section>
+
+<div class="container">
+    <!-- CATEGORIES -->
+    {% if categories %}
+    <section class="section">
+        <h2 class="section-title">🏷️ Shop by Category</h2>
+        <div class="grid grid-4">
+            {% for cat in categories %}
+            <a href="{% url 'product_list' %}?category={{ cat.slug }}" class="glass-card" style="text-align:center;text-decoration:none;color:var(--text)">
+                <div style="font-size:2.5rem;margin-bottom:0.5rem">{{ cat.icon|default:"📦" }}</div>
+                <h3 style="font-size:1rem;font-weight:700">{{ cat.name }}</h3>
+                <p style="font-size:0.82rem;color:var(--text-muted)">{{ cat.products.count }} products</p>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- FEATURED PRODUCTS -->
+    {% if featured_products %}
+    <section class="section">
+        <h2 class="section-title">⭐ Featured Products</h2>
+        <div class="grid grid-4">
+            {% for product in featured_products %}
+            <div class="product-card">
+                {% if product.discount_percent > 0 %}<span class="discount-badge">-{{ product.discount_percent|floatformat:0 }}%</span>{% endif %}
+                <div class="card-img">{% if product.image %}<img src="{{ product.image.url }}" alt="{{ product.name }}">{% else %}🛍️{% endif %}</div>
+                <div class="card-body">
+                    <span class="card-category">{{ product.category.name }}</span>
+                    <h3 class="card-title"><a href="{{ product.get_absolute_url }}">{{ product.name }}</a></h3>
+                    <div class="card-price">
+                        <span class="price-current">₹{{ product.sale_price|floatformat:2 }}</span>
+                        {% if product.discount_percent > 0 %}<span class="price-original">₹{{ product.price|floatformat:2 }}</span>{% endif %}
+                    </div>
+                    <div class="card-rating">{% for i in "12345" %}{% if forloop.counter <= product.avg_rating %}⭐{% else %}☆{% endif %}{% endfor %} <span style="color:var(--text-muted)">({{ product.total_reviews }})</span></div>
+                    <div class="card-actions">
+                        <form action="{% url 'add_to_cart' product.id %}" method="post" style="flex:1">{% csrf_token %}<input type="hidden" name="quantity" value="1"><button type="submit" class="btn btn-primary btn-sm btn-block add-to-cart-btn">🛒 Add to Cart</button></form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- DEALS -->
+    {% if deals %}
+    <section class="section">
+        <h2 class="section-title">🔥 Hot Deals</h2>
+        <div class="grid grid-4">
+            {% for product in deals %}
+            <div class="product-card">
+                <span class="discount-badge">-{{ product.discount_percent|floatformat:0 }}%</span>
+                <div class="card-img">{% if product.image %}<img src="{{ product.image.url }}" alt="{{ product.name }}">{% else %}🏷️{% endif %}</div>
+                <div class="card-body">
+                    <span class="card-category">{{ product.category.name }}</span>
+                    <h3 class="card-title"><a href="{{ product.get_absolute_url }}">{{ product.name }}</a></h3>
+                    <div class="card-price"><span class="price-current">₹{{ product.sale_price|floatformat:2 }}</span><span class="price-original">₹{{ product.price|floatformat:2 }}</span></div>
+                    <p style="font-size:0.85rem;color:#10B981;font-weight:600">Save ₹{{ product.savings|floatformat:2 }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- LATEST -->
+    {% if latest_products %}
+    <section class="section">
+        <h2 class="section-title">🆕 New Arrivals</h2>
+        <div class="grid grid-4">
+            {% for product in latest_products %}
+            <div class="product-card">
+                {% if product.discount_percent > 0 %}<span class="discount-badge">-{{ product.discount_percent|floatformat:0 }}%</span>{% endif %}
+                <div class="card-img">{% if product.image %}<img src="{{ product.image.url }}" alt="{{ product.name }}">{% else %}📦{% endif %}</div>
+                <div class="card-body">
+                    <span class="card-category">{{ product.category.name }}</span>
+                    <h3 class="card-title"><a href="{{ product.get_absolute_url }}">{{ product.name }}</a></h3>
+                    <div class="card-price"><span class="price-current">₹{{ product.sale_price|floatformat:2 }}</span>{% if product.discount_percent > 0 %}<span class="price-original">₹{{ product.price|floatformat:2 }}</span>{% endif %}</div>
+                    <div class="card-actions">
+                        <form action="{% url 'add_to_cart' product.id %}" method="post" style="flex:1">{% csrf_token %}<input type="hidden" name="quantity" value="1"><button type="submit" class="btn btn-primary btn-sm btn-block add-to-cart-btn">🛒 Add to Cart</button></form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- AI SECTION -->
+    <section class="section">
+        <div class="glass-card" style="text-align:center;padding:3rem;background:var(--gradient-soft)">
+            <h2 style="font-size:2rem;font-weight:800;margin-bottom:0.5rem">🤖 Powered by AI</h2>
+            <p style="color:var(--text-muted);max-width:600px;margin:0 auto 1.5rem">Smart recommendations, sentiment analysis, fraud detection, price predictions — all powered by advanced Groq AI.</p>
+            <div class="grid grid-3" style="max-width:700px;margin:0 auto">
+                <div><div style="font-size:2rem">🎯</div><h4>Smart Recommendations</h4></div>
+                <div><div style="font-size:2rem">🛡️</div><h4>Fraud Detection</h4></div>
+                <div><div style="font-size:2rem">📊</div><h4>Price Predictions</h4></div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

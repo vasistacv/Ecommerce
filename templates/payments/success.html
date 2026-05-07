@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Payment Successful{% endblock %}
+{% block content %}
+<div class="container section" style="max-width:600px">
+    <div class="glass-card text-center" style="padding:3rem">
+        <div style="font-size:4rem;margin-bottom:1rem">🎉</div>
+        <h1 style="font-size:2rem;font-weight:800;margin-bottom:0.5rem;color:#10B981">Payment Successful!</h1>
+        <p class="text-muted" style="margin-bottom:1.5rem">Your order has been placed successfully.</p>
+        <div style="background:var(--gradient-soft);padding:1.5rem;border-radius:var(--radius-sm);margin-bottom:1.5rem">
+            <p style="font-size:0.92rem"><strong>Order Number:</strong> {{ order.order_number }}</p>
+            <p style="font-size:0.92rem"><strong>Amount Paid:</strong> ₹{{ order.total|floatformat:2 }}</p>
+            <p style="font-size:0.92rem"><strong>Estimated Delivery:</strong> {{ order.estimated_delivery|date:"M d, Y" }}</p>
+            {% if order.payment %}<p style="font-size:0.92rem"><strong>Transaction ID:</strong> {{ order.payment.transaction_id }}</p>{% endif %}
+        </div>
+        <div class="flex gap-1" style="justify-content:center">
+            <a href="{% url 'order_detail' order.id %}" class="btn btn-primary">View Order</a>
+            <a href="{% url 'track_order' order.id %}" class="btn btn-outline">Track Order</a>
+            <a href="{% url 'product_list' %}" class="btn btn-secondary">Continue Shopping</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

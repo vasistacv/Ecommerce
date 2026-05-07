@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block title %}{{ product.name }}{% endblock %}
+{% block content %}
+<div class="container section">
+    <div class="grid grid-2" style="grid-template-columns:1fr 1.2fr">
+        <!-- Product Image -->
+        <div class="glass-card" style="display:flex;align-items:center;justify-content:center;min-height:400px;font-size:5rem">
+            {% if product.image %}<img src="{{ product.image.url }}" alt="{{ product.name }}" style="max-height:400px;object-fit:contain;width:100%">{% else %}🛍️{% endif %}
+        </div>
+
+        <!-- Product Info -->
+        <div>
+            <span class="badge badge-purple mb-1">{{ product.category.name }}</span>
+            <h1 style="font-size:1.8rem;font-weight:800;margin:0.5rem 0">{{ product.name }}</h1>
+            {% if product.brand %}<p style="font-size:0.95rem;color:var(--text-muted);margin-bottom:0.5rem">by <strong>{{ product.brand }}</strong></p>{% endif %}
+            <div class="flex gap-1" style="align-items:center;margin-bottom:1rem">
+                <div class="card-rating" style="font-size:1.1rem">{% for i in "12345" %}{% if forloop.counter <= product.avg_rating %}⭐{% else %}☆{% endif %}{% endfor %}</div>
+                <span class="text-muted">({{ product.total_reviews }} reviews)</span>
+                <span class="text-muted">· {{ product.total_sold }} sold</span>
+            </div>
+
+            <div style="margin-bottom:1.5rem">
+                <span style="font-size:2.2rem;font-weight:900;color:var(--primary)">₹{{ product.sale_price|floatformat:2 }}</span>
+                {% if product.discount_percent > 0 %}
+                <span style="font-size:1.2rem;color:var(--text-light);text-decoration:line-through;margin-left:0.5rem">₹{{ product.price|floatformat:2 }}</span>
+                <span class="badge badge-success" style="margin-left:0.5rem">{{ product.discount_percent|floatformat:0 }}% OFF</span>
+                {% endif %}
+            </div>
+
+            <p style="margin-bottom:1rem;font-size:0.95rem">{{ product.description|truncatewords:80 }}</p>
+
+            <div style="margin-bottom:1.5rem">
+                {% if product.in_stock %}
+                <span class="badge badge-success">✅ In Stock ({{ product.stock }} available)</span>
+                {% else %}
+                <span class="badge badge-danger">❌ Out of Stock</span>
+                {% endif %}
+                <span class="text-muted" style="margin-left:1rem">SKU: {{ product.sku }}</span>
+            </div>
+
+            {% if product.in_stock %}
+            <form action="{% url 'add_to_cart' product.id %}" method="post" class="flex gap-1" style="align-items:center">
+                {% csrf_token %}
+                <div class="qty-control">
+                    <button type="button" class="qty-btn" data-action="dec">−</button>
+                    <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" class="qty-input">
+                    <button type="button" class="qty-btn" data-action="inc">+</button>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg add-to-cart-btn">🛒 Add to Cart</button>
+            </form>
+            {% endif %}
+
+            <!-- AI Price Prediction -->
+            <div class="glass-card mt-3" style="padding:1rem">
+                <h4>📊 AI Price Prediction</h4>
+                <p class="text-muted" style="font-size:0.85rem">Get AI-powered price trend analysis</p>
+                <button onclick="getPricePrediction('{{ product.slug }}')" class="btn btn-sm btn-outline mt-1" id="predict-btn">🔮 Predict Price</button>
+                <div id="prediction-result" class="mt-1 hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews -->
+    <section class="section">
+        <h2 class="section-title">💬 Customer Reviews</h2>
+        {% if user.is_authenticated %}
+        <div class="glass-card mb-2">
+            <h3 style="margin-bottom:1rem">Write a Review</h3>
+            <form action="{% url 'submit_review' product.slug %}" method="post">
+                {% csrf_token %}
+                <div class="form-group"><label class="form-label">Rating</label>
+                    <div class="star-rating-input flex gap-1">
+                        <input type="hidden" name="rating" value="5">
+                        {% for i in "12345" %}<span class="star active" data-value="{{ forloop.counter }}" style="font-size:1.5rem;cursor:pointer">⭐</span>{% endfor %}
+                    </div>
+                </div>
+                <div class="form-group"><label class="form-label">Title</label><input type="text" name="title" class="form-input" required placeholder="Summary of your review"></div>
+                <div class="form-group"><label class="form-label">Review</label><textarea name="content" class="form-input" rows="3" required placeholder="Share your experience..."></textarea></div>
+                <div class="grid grid-2">
+                    <div class="form-group"><label class="form-label">Pros</label><textarea name="pros" class="form-input" rows="2" placeholder="What you liked"></textarea></div>
+                    <div class="form-group"><label class="form-label">Cons</label><textarea name="cons" class="form-input" rows="2" placeholder="What could improve"></textarea></div>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit Review</button>
+            </form>
+        </div>
+        {% endif %}
+
+        {% for review in reviews %}
+        <div class="glass-card mb-1" style="padding:1rem 1.2rem">
+            <div class="flex-between">
+                <div><strong>{{ review.user.first_name|default:review.user.username }}</strong> <span class="text-muted">· {{ review.created_at|date:"M d, Y" }}</span></div>
+                <div>{% for i in "12345" %}{% if forloop.counter <= review.rating %}⭐{% else %}☆{% endif %}{% endfor %}
+                    {% if review.sentiment_label %}<span class="badge {% if review.sentiment_label == 'positive' %}badge-success{% elif review.sentiment_label == 'negative' %}badge-danger{% else %}badge-info{% endif %}" style="margin-left:0.3rem">{{ review.sentiment_label }}</span>{% endif %}
+                    {% if review.is_fake %}<span class="badge badge-danger">⚠️ Suspicious</span>{% endif %}
+                </div>
+            </div>
+            <h4 style="margin:0.5rem 0">{{ review.title }}</h4>
+            <p style="font-size:0.92rem">{{ review.content }}</p>
+            {% if review.pros %}<p style="font-size:0.85rem;color:#10B981;margin-top:0.3rem">👍 {{ review.pros }}</p>{% endif %}
+            {% if review.cons %}<p style="font-size:0.85rem;color:#EF4444;margin-top:0.3rem">👎 {{ review.cons }}</p>{% endif %}
+        </div>
+        {% empty %}
+        <div class="glass-card text-center" style="padding:2rem"><p class="text-muted">No reviews yet. Be the first!</p></div>
+        {% endfor %}
+    </section>
+
+    <!-- Related -->
+    {% if related_products %}
+    <section class="section">
+        <h2 class="section-title">🔗 Related Products</h2>
+        <div class="grid grid-4">
+            {% for p in related_products %}
+            <div class="product-card">
+                <div class="card-img">{% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.name }}">{% else %}📦{% endif %}</div>
+                <div class="card-body">
+                    <h3 class="card-title"><a href="{{ p.get_absolute_url }}">{{ p.name }}</a></h3>
+                    <div class="card-price"><span class="price-current">₹{{ p.sale_price|floatformat:2 }}</span></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+
+{% block extra_js %}
+<script>
+async function getPricePrediction(slug) {
+    const btn = document.getElementById('predict-btn');
+    const result = document.getElementById('prediction-result');
+    btn.innerHTML = '⏳ Analyzing...'; btn.disabled = true;
+    try {
+        const resp = await fetch(`/api/ai/predict-price/?product=${slug}`);
+        const data = await resp.json();
+        if (data.success) {
+            const trend = data.trend === 'up' ? '📈' : data.trend === 'down' ? '📉' : '➡️';
+            result.innerHTML = `<div class="glass-card" style="padding:1rem;background:var(--gradient-soft)">
+                <p><strong>${trend} Trend: ${data.trend.toUpperCase()}</strong> (${(data.confidence*100).toFixed(0)}% confidence)</p>
+                <p>Predicted Price: <strong>₹${data.predicted_price?.toFixed(2) || 'N/A'}</strong></p>
+                <p>Recommendation: <span class="badge badge-info">${data.recommendation || 'N/A'}</span></p>
+                <p style="font-size:0.85rem;color:var(--text-muted);margin-top:0.3rem">${data.analysis || ''}</p>
+            </div>`;
+            result.classList.remove('hidden');
+        }
+    } catch(e) { result.innerHTML = '<p class="text-muted">Prediction unavailable</p>'; result.classList.remove('hidden'); }
+    btn.innerHTML = '🔮 Predict Price'; btn.disabled = false;
+}
+</script>
+{% endblock %}
+{% endblock %}

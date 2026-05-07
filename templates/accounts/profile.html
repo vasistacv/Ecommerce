@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}My Profile{% endblock %}
+{% block content %}
+<div class="container section">
+    <div class="profile-header">
+        <div class="profile-avatar">{{ user.first_name.0|default:"U" }}</div>
+        <div>
+            <h1 style="font-size:1.5rem;font-weight:800">{{ user.first_name }} {{ user.last_name }}</h1>
+            <p class="text-muted">{{ user.email }} · Member since {{ user.date_joined|date:"M Y" }}</p>
+            <div class="flex gap-1 mt-1"><span class="badge badge-purple">🏆 {{ user.profile.loyalty_points }} Points</span>{% if user.profile.is_premium %}<span class="badge badge-success">⭐ Premium</span>{% endif %}</div>
+        </div>
+    </div>
+
+    <div class="grid grid-2">
+        <!-- Profile Form -->
+        <div class="glass-card">
+            <h3 style="margin-bottom:1rem">✏️ Edit Profile</h3>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="grid grid-2">
+                    <div class="form-group"><label class="form-label">First Name</label>{{ form.first_name }}</div>
+                    <div class="form-group"><label class="form-label">Last Name</label>{{ form.last_name }}</div>
+                </div>
+                <div class="form-group"><label class="form-label">Email</label>{{ form.email }}</div>
+                <div class="form-group"><label class="form-label">Phone</label>{{ form.phone }}</div>
+                <div class="form-group"><label class="form-label">Date of Birth</label>{{ form.date_of_birth }}</div>
+                <div class="form-group"><label class="form-label">Bio</label>{{ form.bio }}</div>
+                <div class="form-group"><label class="form-label">Avatar</label>{{ form.avatar }}</div>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+        </div>
+
+        <!-- Addresses -->
+        <div>
+            <div class="glass-card mb-2">
+                <div class="flex-between mb-2"><h3>📍 Addresses</h3><a href="{% url 'add_address' %}" class="btn btn-sm btn-outline">+ Add</a></div>
+                {% for addr in addresses %}
+                <div style="padding:0.8rem;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:0.8rem">
+                    <div class="flex-between"><strong>{{ addr.full_name }}</strong>{% if addr.is_default %}<span class="badge badge-success">Default</span>{% endif %}</div>
+                    <p style="font-size:0.88rem;color:var(--text-muted);margin:0.3rem 0">{{ addr.street_address }}, {{ addr.city }}, {{ addr.state }} - {{ addr.zip_code }}</p>
+                    <p style="font-size:0.85rem;color:var(--text-muted)">📞 {{ addr.phone }}</p>
+                    <div class="flex gap-1 mt-1">
+                        <a href="{% url 'edit_address' addr.pk %}" class="btn btn-sm btn-secondary">Edit</a>
+                        <form action="{% url 'delete_address' addr.pk %}" method="post" style="display:inline"><{% csrf_token %}<button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete?')">Delete</button></form>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">No addresses yet. <a href="{% url 'add_address' %}">Add one</a></p>
+                {% endfor %}
+            </div>
+
+            <!-- Quick Links -->
+            <div class="glass-card">
+                <h3 style="margin-bottom:1rem">⚡ Quick Links</h3>
+                <a href="{% url 'order_list' %}" class="btn btn-secondary btn-block mb-1">📦 My Orders</a>
+                <a href="{% url 'cart' %}" class="btn btn-secondary btn-block mb-1">🛒 My Cart</a>
+                <a href="{% url 'product_list' %}" class="btn btn-secondary btn-block">🛍️ Continue Shopping</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

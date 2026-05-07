@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Shopping Cart{% endblock %}
+{% block content %}
+<div class="container section">
+    <h1 class="section-title">🛒 Shopping Cart</h1>
+    {% if items %}
+    <div class="checkout-layout">
+        <div class="glass-card">
+            <table class="cart-table">
+                <thead><tr><th>Product</th><th>Price</th><th>Quantity</th><th>Total</th><th></th></tr></thead>
+                <tbody>
+                {% for item in items %}
+                <tr>
+                    <td><div class="cart-item-info"><div class="cart-item-img">{% if item.product.image %}<img src="{{ item.product.image.url }}" style="width:70px;height:70px;object-fit:cover;border-radius:8px">{% else %}📦{% endif %}</div><div><a href="{{ item.product.get_absolute_url }}" style="font-weight:600;color:var(--text)">{{ item.product.name }}</a><p style="font-size:0.82rem;color:var(--text-muted)">{{ item.product.category.name }}</p></div></div></td>
+                    <td><strong>₹{{ item.product.sale_price|floatformat:2 }}</strong></td>
+                    <td><form action="{% url 'update_cart_item' item.id %}" method="post" class="qty-control">{% csrf_token %}<button type="button" class="qty-btn" data-action="dec" onclick="this.form.quantity.value=Math.max(1,parseInt(this.form.quantity.value)-1);this.form.submit()">−</button><input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="qty-input"><button type="button" class="qty-btn" data-action="inc" onclick="this.form.quantity.value=parseInt(this.form.quantity.value)+1;this.form.submit()">+</button></form></td>
+                    <td><strong>₹{{ item.line_total|floatformat:2 }}</strong></td>
+                    <td><form action="{% url 'remove_from_cart' item.id %}" method="post">{% csrf_token %}<button type="submit" class="btn btn-sm btn-danger" title="Remove">🗑️</button></form></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <div class="flex-between mt-2">
+                <form action="{% url 'clear_cart' %}" method="post">{% csrf_token %}<button type="submit" class="btn btn-sm btn-secondary" onclick="return confirm('Clear cart?')">🗑️ Clear Cart</button></form>
+                <a href="{% url 'product_list' %}" class="btn btn-sm btn-secondary">← Continue Shopping</a>
+            </div>
+        </div>
+
+        <div class="order-summary">
+            <div class="glass-card">
+                <h3 style="margin-bottom:1rem">📋 Order Summary</h3>
+                <div class="summary-row"><span>Subtotal ({{ cart.total_items }} items)</span><span>₹{{ cart.subtotal|floatformat:2 }}</span></div>
+                <div class="summary-row"><span>GST (18%)</span><span>₹{{ cart.tax|floatformat:2 }}</span></div>
+                <div class="summary-row"><span>Shipping</span><span style="color:#10B981">{% if cart.subtotal > 500 %}FREE{% else %}₹49.00{% endif %}</span></div>
+                <div class="summary-row total"><span>Total</span><span style="color:var(--primary)">₹{{ cart.total|floatformat:2 }}</span></div>
+                <a href="{% url 'checkout' %}" class="btn btn-primary btn-block btn-lg mt-2">Proceed to Checkout →</a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state glass-card"><div class="icon">🛒</div><h3>Your cart is empty</h3><p>Add some products to get started!</p><a href="{% url 'product_list' %}" class="btn btn-primary">Start Shopping</a></div>
+    {% endif %}
+</div>
+{% endblock %}
