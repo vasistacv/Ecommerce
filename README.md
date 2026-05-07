@@ -682,11 +682,7 @@ Redis is automatically detected — if running, the app uses it; if not, it fall
 
 ---
 
-## 📄 License
 
-This project is open source and available under the [MIT License](LICENSE).
-
----
 
 ## 👨‍💻 Author
 
